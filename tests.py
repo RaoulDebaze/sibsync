@@ -14,10 +14,11 @@ logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
 logging.info('Start Tests')
 
 logging.debug('Setting global variables')
-dir_to_backup = '/root/res/test'
-base_bck_dir = '/root/res/bck'
-#dir_to_backup = '/Users/simon/Partages/Test'
-#base_bck_dir = '/Users/simon/Partages/Sauvegardes'
+#dir_to_backup = '/root/res/test'
+#base_bck_dir = '/root/res/bck'
+dir_to_backup = '/Users/simon/Partages/Test'
+ref_dir = os.getcwd()
+base_bck_dir = '/Users/simon/Partages/Sauvegardes'
 user = getpass.getuser()
 host = socket.gethostname()
 srce_dir = dir_to_backup
@@ -25,7 +26,7 @@ dest_dir = os.path.join(base_bck_dir, host, user)
 work_dir = os.path.join(base_bck_dir, '.bck4sync')
 extract_dir = os.path.join(base_bck_dir, 'ex_dir')
 
-password = 'sibSAV'
+password = 'changeme'
 
 
 def take_fs_photo():
@@ -64,7 +65,7 @@ if not os.path.exists(dest_dir):
 logging.debug('Create directory ' + work_dir)
 if not os.path.exists(work_dir):
     os.makedirs(work_dir)
-shutil.copytree(dir_to_backup + 'ref', dir_to_backup)
+shutil.copytree(os.path.join(ref_dir, '0'), dir_to_backup)
 fs_photo = take_fs_photo()
 # Test
 my_backup = BckTarGroup('sib', srce_dir, dest_dir, work_dir, password)
@@ -113,27 +114,21 @@ time.sleep(1)
 # Update an existing backup with the last member not full
 # Preparation
 print '-'*5 + ' Test 3 ' + '-'*5
-os.utime(os.path.join(srce_dir, 'dir3', 'fileC'), None)   
+os.utime(os.path.join(srce_dir, 'dir2', 'file21'), None)   
 fs_photo3 = take_fs_photo()
 # Test
 #print backup_name
 #my_backup = BckTarGroup(backup_name, srce_dir, dest_dir, work_dir, password)
 my_backup3 = my_backup.update()
-bck_members = my_backup.getmembers()
-print bck_members
-bck_submembers = my_backup.getsubmembers()
-print bck_submembers
-bck_photo = [ item for sublist in bck_members for item in sublist ]
-backup_name3 = my_backup3.name
 my_backup3.print_members()
-bck_members3 = my_backup3.getmembers()
-bck_photo3 = [ item for sublist in bck_members3 for item in sublist ]
+bck_submembers = my_backup.getsubmembers()
+bck_submembers3 = my_backup3.getsubmembers()
 # Result
 result = True
-if fs_photo != bck_photo:
+if fs_photo != bck_submembers:
     logging.debug('Members of first backup as been updated !')
     result = False
-elif fs_photo3 != bck_photo3:
+elif fs_photo3 != bck_submembers3:
     logging.debug('New backup does not reflect currestn file system !')
     result = False
 # Output

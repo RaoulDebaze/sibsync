@@ -233,7 +233,7 @@ class BckTarGroup:
             self.datetime = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
             self.name = self.prefix + '-' + self.datetime
             
-        self.max_members_size = (5*1024*1024)
+        self.max_members_size = (50*1024)
         self.key = SHA256.new(self.password).digest()
         self.bcktar_members = []
         self.members = []
@@ -277,7 +277,6 @@ class BckTarGroup:
         logging.debug('Open backup ' + self.name + ' in mode ' + mode)
         self.mode = mode
         if mode == 'w':
-            self.bcktar_members = []
             self.members = []
             self.fullname = os.path.join(self.dest_dir,
                     self.name + '.inProgress')
@@ -294,40 +293,47 @@ class BckTarGroup:
         os.rename(self.fullname, completed_fullname)
         self.fullname = completed_fullname
 
-    def _append_bcktar(self, bcktar_file = None):
-        if not bcktar_file:
-            # Create an empty bcktar_member
-            index = len(self.bcktar_members) + 1
-            bcktar_file = BckTarFile(\
-                    self.prefix, index, \
-                    self.datetime, self.dest_dir, self.work_dir, \
-                    self.max_members_size, \
-                    self.key)
-        self.bcktar_members.append(bcktar_file)
-        self.ctrl_file.write(self.bcktar_members[-1].name + '\n')
-                        
+    def _get_new_member(self, index = 0):
+        if index == 0:
+            # Set the index to the next one
+            index = len(self.members) + 1
+
+        # Create an empty bcktar_member
+        member = BckTarFile(\
+                self.prefix, index, \
+                self.datetime, self.dest_dir, self.work_dir, \
+                self.max_members_size, \
+                self.key)
+        logging.debug('Initiate ' + member.name)
+        return member
+
+    def _append_member(self, member):
+        logging.debug('Add ' + member.name)
+        self.members.append(member)
+        self.ctrl_file.write(member.name + '\n')
+
     def _append_files(self, files):
         # Open a new bcktar to append files to bckgroup
-        self._append_bcktar()
-        self.bcktar_members[-1].open('w')
+        self._append_member(self._get_new_member(1))
+        self.members[-1].open('w')
         
         sorted_files = sorted(files, key=lambda mtime: mtime['mtime'])
         for file in sorted_files:
             # Open a new bcktar file if
             # last tar file is full
-            if self.bcktar_members[-1].is_full():
-                self.bcktar_members[-1].close()
-                self._append_bcktar()
-                self.bcktar_members[-1].open('w')
+            if self.members[-1].is_full():
+                self.members[-1].close()
+                self._append_member(self._get_new_member())
+                self.members[-1].open('w')
 
-            self.bcktar_members[-1].add(file['path'])
+            self.members[-1].add(file['path'])
 
-        self.bcktar_members[-1].close()
+        self.members[-1].close()
             
     def is_complete(self):
         is_complete = True
         if not self.bcktar_members:
-            self._set_bcktar_members()
+            self._read_members()
         for bcktar_file in self.bcktar_members:
             if not os.path.isfile(bcktar_file.dest_fullname):
                 is_complete = False
@@ -364,11 +370,10 @@ class BckTarGroup:
 
         # Compare tar members with files on file system
         next_submembers = self.getsubmembers()
-        new_members = []
-        # Loop over each member (=each tar files)
-        for member in self.members:
+        # Loop over each member (=each tar files) except last one
+        for ori_member in self.members[:-1]:
             new_submembers = []
-            ori_submembers = member.getmembers()
+            ori_submembers = ori_member.getmembers()
             # Remove files from current tar of next list
             next_submembers = \
                 [ submember for submember in next_submembers \
@@ -386,57 +391,26 @@ class BckTarGroup:
                 if new_submembers[-1]['path'] == \
                         ori_submembers[-1]['path']:
                     break
-            # Cannot work !
             if ori_submembers == new_submembers:
-                new_members._append_bcktar(member)
+                updated_bck._append_member(ori_member)
             elif new_submembers:
-                new_members._append_bcktar()
+                # Add a new tar only if there is something to add
+                updated_bck._append_member(self._get_new_member(ori_member.index))
+                new_member = updated_bck.members[-1]
+                new_member.open('w')
+                for submember in new_submembers:
+                    new_member.add(submember['path'])
+                new_member.close()
 
-        if (self.members == new_members) and not srce_files:
-            # The backup is up-to-date
-            logging.debug(self.name + ' is up-to-date')
-        else:
-            logging.debug(self.name + ' is not update')
-
-        # Loop over all bcktar except last one, which will be treated separetly
-        for bcktar_index in range(len(self.bcktar_members) - 1):
-            if self.members[bcktar_index] == new_members[bcktar_index]:
-                # tar is up-to-date
-                # => resuse it for new backup
-                logging.debug('Add ' + \
-                        self.bcktar_members[bcktar_index].name)
-                updated_bck._append_bcktar(self.bcktar_members[bcktar_index])
-            elif new_members[bcktar_index]:
-                # At least one members has been updated or removed
-                # And new tar will not be empty
-                # => recreate a new tar
-                updated_bck._append_bcktar()
-                logging.debug('Write ' + updated_bck.bcktar_members[-1].name)
-                updated_bck.bcktar_members[-1].open('w')
-                for member in new_members[bcktar_index]:
-                    updated_bck.bcktar_members[-1].add(member['path'])
-                updated_bck.bcktar_members[-1].close()
-            else:
-                # All file from tar has been updated
-                # => Add en empty element
-                updated_bck.bcktar_members.append(None)
-
-        # -1 because list start at 0 but BckTarFile at 1
-        bcktar_index = len(self.bcktar_members) - 1
-        # Treat the last BckTarFile
-        if self.members[-1] == new_members[-1] \
-                and (self.bcktar_members[-1].is_full() \
-                or not srce_files) :
+        # Treat the last member
+        ori_submembers = self.members[-1].getmembers()
+        new_submembers = srce_files[:len(ori_submembers)]
+        if  ori_submembers == new_submembers \
+                and (self.members[-1].is_full() \
+                or len(ori_submembers) == len(srce_files)):
             # No update needed for last bcktar
-            logging.debug('Add ' + self.bcktar_members[bcktar_index].name)
-            logging.debug('Add ' + \
-                    self.bcktar_members[-1].name)
             updated_bck._append_bcktar(self.bcktar_members[-1])
-        else:
-            # Update needed for last bcktar
-            # => Add files from last member to remaining files
-            # => New BckTarFile will be recreated during next step
-            srce_files = new_members[-1] + srce_files
+            srce_files = srce_files[len(ori_submembers):]
 
         # Apend new files
         if srce_files:
