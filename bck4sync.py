@@ -265,45 +265,14 @@ class BckTarGroup:
         
         # List bcktar files
         self.open('r')
-        self.bcktar_members = []
-        for ctrl_line in self.ctrl_file:
-            bcktar_file = BckTarFile(ctrl_line.rstrip('\n'), \
-                    self.dest_dir, self.work_dir, \
-                    self.max_members_size, self.key)
-            self.bcktar_members.append(bcktar_file)
-        self.close()
-    
-    def _set_bcktar_members(self):
-        logging.debug('Read bcktar members from ' + self.name)
-        
-        # List bcktar files
-        self.open('r')
-        self.bcktar_members = []
-        for ctrl_line in self.ctrl_file:
-            bcktar_file = BckTarFile(ctrl_line.rstrip('\n'), \
-                    self.dest_dir, self.work_dir, \
-                    self.max_members_size, self.key)
-            self.bcktar_members.append(bcktar_file)
-        self.close()
-    
-    def _set_members(self):
-        logging.debug('Read members from ' + self.name)
-
-        print self.bcktar_members
-        if not self.bcktar_members:
-            self._set_bcktar_members()
-        
-        #
         self.members = []
-        for bcktarfile in self.bcktar_members:
-            for member in bcktarfile.getmembers():
-                self.members.append({
-                        index=bcktarfile.index,
-                        dtime=bcktarfile.datatime,
-                        name=member['path'],
-                        mtime=member['mtime'],
-                        size=member['size']})
- 
+        for ctrl_line in self.ctrl_file:
+            bcktar_file = BckTarFile(ctrl_line.rstrip('\n'), \
+                    self.dest_dir, self.work_dir, \
+                    self.max_members_size, self.key)
+            self.members.append(bcktar_file)
+        self.close()
+
     def open(self, mode):
         logging.debug('Open backup ' + self.name + ' in mode ' + mode)
         self.mode = mode
@@ -482,9 +451,19 @@ class BckTarGroup:
 
     def getmembers(self):
         if not self.members:
-            self._set_members()
+            self._read_members()
         return self.members
-        
+
+    def getsubmembers(self):
+        if not self.members:
+            self._read_members()
+
+        submembers = []
+        for member in self.members:
+            for submember in member.getmembers():
+                submembers.append(submember)
+        return submembers
+                
     def print_members(self):
         if not self.members:
             self._set_members()
