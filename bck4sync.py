@@ -357,35 +357,40 @@ class BckTarGroup:
         updated_bck.open('w')
         
         if not self.members:
-            self._set_members()
+            self._read_members()
 
         # Get files list on the file system
         srce_files=self._get_srce_files()
 
         # Compare tar members with files on file system
-        files_in_next_tar = [item for sublist in self.members for item in sublist]
+        next_submembers = self.getsubmembers()
         new_members = []
-        for members_in_tar in self.members:
-            new_members_in_tar = []
-            if members_in_tar:
-                # Remove files from current tar of next list
-                files_in_next_tar = \
-                    [ member for member in files_in_next_tar \
-                        if member not in members_in_tar ]
-                while srce_files \
-                        and (srce_files[0]['mtime'] <= \
-                        members_in_tar[-1]['mtime']):
-                    # Break in current file is in one of the next tars
-                    if srce_files[0]['path'] in \
-                            [i['path'] for i in files_in_next_tar]:
-                        break
-                    new_members_in_tar.append(srce_files.pop(0))
-                    # Break if the file we had is the last from members in tar
-                    # Necessary for last members_in_tar
-                    if new_members_in_tar[-1]['path'] == \
-                            members_in_tar[-1]['path']:
-                        break
-            new_members.append(new_members_in_tar)
+        # Loop over each member (=each tar files)
+        for member in self.members:
+            new_submembers = []
+            ori_submembers = member.getmembers()
+            # Remove files from current tar of next list
+            next_submembers = \
+                [ submember for submember in next_submembers \
+                    if submember not in ori_submembers ]
+            while srce_files \
+                    and (srce_files[0]['mtime'] <= \
+                    ori_submembers[-1]['mtime']):
+                # Break in current file is in one of the next tars
+                if srce_files[0]['path'] in \
+                        [i['path'] for i in next_submembers]:
+                    break
+                new_submembers.append(srce_files.pop(0))
+                # Break if the file we had is the last from members in tar
+                # Necessary for last members_in_tar
+                if new_submembers[-1]['path'] == \
+                        ori_submembers[-1]['path']:
+                    break
+            # Cannot work !
+            if ori_submembers == new_submembers:
+                new_members._append_bcktar(member)
+            elif new_submembers:
+                new_members._append_bcktar()
 
         if (self.members == new_members) and not srce_files:
             # The backup is up-to-date
