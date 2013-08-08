@@ -75,11 +75,7 @@ backup_name = my_backup.name
 if not my_backup.is_complete():
     result = False
 else:
-    bck_members = my_backup.getmembers()
-    print bck_members
     bck_submembers = my_backup.getsubmembers()
-    print bck_submembers
-    print fs_photo
     if fs_photo != bck_submembers:
         result = False
 # Output 1
@@ -100,11 +96,10 @@ fs_photo = take_fs_photo()
 logging.debug('backup_name = ' + backup_name)
 my_backup = BckTarGroup(backup_name, srce_dir, dest_dir, work_dir, password)
 my_backup.print_members()
-bck_members = my_backup.getmembers()
+bck_submembers2 = my_backup.getsubmembers()
 # Result
 result = True
-bck_photo = [ item for sublist in bck_members for item in sublist ]
-if fs_photo != bck_photo:
+if fs_photo != bck_submembers2:
     result = False
 # Output
 if result:

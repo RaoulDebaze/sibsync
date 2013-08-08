@@ -466,13 +466,13 @@ class BckTarGroup:
                 
     def print_members(self):
         if not self.members:
-            self._set_members()
+            self._read_members()
 
-        for bcktar_file in self.bcktar_members:
-            print bcktar_file.name
-            for member in self.members[bcktar_file.index - 1]:
+        for member in self.members:
+            print member.name
+            for submember in member.getmembers():
                 mtime = datetime.datetime\
-                        .fromtimestamp(int(member['mtime']))\
+                        .fromtimestamp(int(submember['mtime']))\
                         .strftime('%Y-%m-%d %H:%M:%S')
-                print '%s %10s %s' % ( \
-                        mtime, member['size'], member['path'])
+                print '    %s %10s %s' % ( \
+                        mtime, submember['size'], submember['path'])
