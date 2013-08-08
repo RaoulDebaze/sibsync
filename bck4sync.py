@@ -409,7 +409,7 @@ class BckTarGroup:
                 and (self.members[-1].is_full() \
                 or len(ori_submembers) == len(srce_files)):
             # No update needed for last bcktar
-            updated_bck._append_bcktar(self.bcktar_members[-1])
+            updated_bck._append_member(self.members[-1])
             srce_files = srce_files[len(ori_submembers):]
 
         # Apend new files

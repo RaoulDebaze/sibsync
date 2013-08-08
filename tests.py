@@ -147,11 +147,11 @@ print '-'*5 + ' Test 4 ' + '-'*5
 #print backup_name
 #my_backup = BckTarGroup(backup_name, srce_dir, dest_dir, work_dir, password)
 my_backup4 = my_backup3.update()
-bck_members4 = my_backup4.getmembers()
+bck_submembers4 = my_backup4.getsubmembers()
 my_backup4.print_members()
 # Result
 result = True
-if bck_members4 != bck_members3:
+if bck_submembers4 != bck_submembers3:
     logging.debug('Members of updated backup should not been different \
             from original backup')
     result = False
