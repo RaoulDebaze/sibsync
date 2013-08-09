@@ -130,7 +130,7 @@ time.sleep(1)
 # Update an existing backup with the last member not full
 # Preparation
 print '-'*5 + ' Test 3 ' + '-'*5
-os.utime(os.path.join(srce_dir, 'dir2', 'file21'), None)   
+os.utime(os.path.join(srce_dir, 'dir4', 'fileA'), None)   
 fs_photo3 = take_fs_photo()
 # Test
 #print backup_name
