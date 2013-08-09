@@ -295,8 +295,13 @@ class BckTarGroup:
 
     def _get_new_member(self, index = 0):
         if index == 0:
-            # Set the index to the next one
-            index = len(self.members) + 1
+            if self.members:
+                # If some members already exist
+                # retrieve the last index and iterate it
+                index = self.members[-1].index + 1
+            else:
+                # First new member, set the index to 1
+                index = 1
 
         # Create an empty bcktar_member
         member = BckTarFile(\
@@ -314,7 +319,7 @@ class BckTarGroup:
 
     def _append_files(self, files):
         # Open a new bcktar to append files to bckgroup
-        self._append_member(self._get_new_member(1))
+        self._append_member(self._get_new_member())
         self.members[-1].open('w')
         
         sorted_files = sorted(files, key=lambda mtime: mtime['mtime'])

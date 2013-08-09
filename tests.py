@@ -63,7 +63,7 @@ def take_fs_photo():
     return sorted(files, key=lambda mtime: mtime['mtime'])
 
 # Test 1
-# Create a new backup
+print "Create a new backup"
 # Preparation 1
 #time.sleep(1)
 if os.path.exists(dest_dir):
@@ -84,7 +84,7 @@ shutil.copytree(os.path.join(ref_dir, '0'), dir_to_backup)
 
 fs_photo = take_fs_photo()
 # Test
-my_backup = BckTarGroup('sib', srce_dir, dest_dir, work_dir, password)
+my_backup = BckTarGroup('Test', srce_dir, dest_dir, work_dir, password)
 my_backup.create()
 # Result 1
 result = True
@@ -96,6 +96,7 @@ else:
     if fs_photo != bck_submembers:
         result = False
 # Output 1
+print "Nb elements: " + str(len(bck_submembers))
 if result:
     print 'Test 1: OK\n\n'
 else:
@@ -104,7 +105,7 @@ else:
 
 time.sleep(1)
 # Test 2
-# Read an existing backup
+print "Read an existing backup"
 # Preparation
 print '-'*5 + ' Test 2 ' + '-'*5
 del my_backup
@@ -119,6 +120,7 @@ result = True
 if fs_photo != bck_submembers2:
     result = False
 # Output
+print "Nb elements: " + str(len(bck_submembers2))
 if result:
     print 'Test 2: OK\n\n'
 else:
@@ -127,7 +129,7 @@ else:
 
 time.sleep(1)
 # Test 3
-# Update an existing backup with the last member not full
+print "Update an existing backup with the last member not full"
 # Preparation
 print '-'*5 + ' Test 3 ' + '-'*5
 os.utime(os.path.join(srce_dir, 'dir4', 'fileA'), None)   
@@ -140,6 +142,7 @@ my_backup3.print_members()
 bck_submembers = my_backup.getsubmembers()
 bck_submembers3 = my_backup3.getsubmembers()
 # Result
+print "Nb elements: " + str(len(bck_submembers3))
 result = True
 if fs_photo != bck_submembers:
     logging.debug('Members of first backup as been updated !')
@@ -156,7 +159,8 @@ else:
 
 time.sleep(1)
 # Test 4
-# Update an existing backup but not change has been dont on the file system
+print "Update an existing backup"
+print "but not change has been done on the file system"
 # Preparation
 print '-'*5 + ' Test 4 ' + '-'*5
 # Test
@@ -166,6 +170,7 @@ my_backup4 = my_backup3.update()
 bck_submembers4 = my_backup4.getsubmembers()
 my_backup4.print_members()
 # Result
+print "Nb elements: " + str(len(bck_submembers4))
 result = True
 if bck_submembers4 != bck_submembers3:
     logging.debug('Members of updated backup should not been different \
@@ -180,30 +185,28 @@ else:
 
 time.sleep(1)
 # Test 5
-# Update an existing backup where all members of a tar has been updated
+print "Update an existing backup where all members of a tar has been updated"
 # Preparation
 print '-'*5 + ' Test 5 ' + '-'*5
-os.utime(os.path.join(srce_dir, 'dir2', 'file6'), None)   
-os.utime(os.path.join(srce_dir, 'dir2', 'file7'), None)   
-os.utime(os.path.join(srce_dir, 'dir2', 'file9'), None)   
-os.utime(os.path.join(srce_dir, 'dir2', 'file10'), None)
+os.utime(os.path.join(srce_dir, 'dir2', 'file23'), None)   
+os.utime(os.path.join(srce_dir, 'file2'), None)   
 fs_photo5 = take_fs_photo()
 # Test
 #print backup_name
 #my_backup = BckTarGroup(backup_name, srce_dir, dest_dir, work_dir, password)
 my_backup5 = my_backup4.update()
-bck_members5 = my_backup5.getmembers()
+bck_submembers5 = my_backup5.getsubmembers()
 my_backup5.print_members()
-bck_photo5 = [ item for sublist in bck_members5 for item in sublist ]
 # Result
 result = True
-if bck_photo5 != fs_photo5:
+if bck_submembers5 != fs_photo5:
     logging.debug('Backup does not reflect the file system')
     result = False
-elif my_backup5.bcktar_members[2]:
-    logging.debug('Tar 3 is not empty')
+elif my_backup5.members[1].index == 2:
+    logging.debug('Tar 2 is not empty')
     result = False
 # Output
+print "Nb elements: " + str(len(bck_submembers5))
 if result:
     print 'Test 5: OK\n\n'
 else:
