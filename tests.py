@@ -14,11 +14,11 @@ logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
 logging.info('Start Tests')
 
 logging.debug('Setting global variables')
-#dir_to_backup = '/root/res/test'
-#base_bck_dir = '/root/res/bck'
-dir_to_backup = '/Users/simon/Partages/Test'
+dir_to_backup = '/root/res/test'
+base_bck_dir = '/root/res/bck'
+#dir_to_backup = '/Users/simon/Partages/Test'
+#base_bck_dir = '/Users/simon/Partages/Sauvegardes'
 ref_dir = os.getcwd()
-base_bck_dir = '/Users/simon/Partages/Sauvegardes'
 user = getpass.getuser()
 host = socket.gethostname()
 srce_dir = dir_to_backup
@@ -28,6 +28,19 @@ extract_dir = os.path.join(base_bck_dir, 'ex_dir')
 
 password = 'changeme'
 
+def rm_dir_content(dir_path):
+    print "rm: " + dir_path
+    all_dir = []
+    for root_dir, dir_names, file_names in os.walk(dir_path):
+        for file_name in file_names:
+            path = os.path.join(root_dir, file_name)
+            os.remove(path)
+        for dir_name in dir_names:
+            path = os.path.join(root_dir, dir_name)
+            all_dir.append(path)
+    print all_dir
+    for dir_name in all_dir:
+        os.rmdir(path)
 
 def take_fs_photo():
     files = []
@@ -53,19 +66,22 @@ def take_fs_photo():
 # Create a new backup
 # Preparation 1
 #time.sleep(1)
-if os.path.exists(dir_to_backup):
-    shutil.rmtree(dir_to_backup)
 if os.path.exists(dest_dir):
-    shutil.rmtree(dest_dir)
-if os.path.exists(work_dir):
-    shutil.rmtree(work_dir)
-logging.debug('Create directory ' + dest_dir)
-if not os.path.exists(dest_dir):
+    rm_dir_content(dest_dir)
+else:
     os.makedirs(dest_dir)
-logging.debug('Create directory ' + work_dir)
-if not os.path.exists(work_dir):
+if os.path.exists(work_dir):
+    rm_dir_content(work_dir)
+else:
     os.makedirs(work_dir)
+# Reinitialize dir_to_backup
+#if os.path.exists(dir_to_backup):
+#    rm_dir_content(dir_to_backup)
+#else:
+#    os.makedirs(dir_to_backup)
+shutil.rmtree(dir_to_backup)
 shutil.copytree(os.path.join(ref_dir, '0'), dir_to_backup)
+
 fs_photo = take_fs_photo()
 # Test
 my_backup = BckTarGroup('sib', srce_dir, dest_dir, work_dir, password)
