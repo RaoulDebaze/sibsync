@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+import filecmp
 import getpass
 import logging
 import os
@@ -24,27 +25,23 @@ host = socket.gethostname()
 srce_dir = dir_to_backup
 dest_dir = os.path.join(base_bck_dir, host, user)
 work_dir = os.path.join(base_bck_dir, '.bck4sync')
-extract_dir = os.path.join(base_bck_dir, 'ex_dir')
+extract_dir = os.path.join(base_bck_dir, 'restore')
 
 password = 'changeme'
 
 def rm_dir_content(dir_path):
     print "rm: " + dir_path
+    os.chdir(dir_path)
     all_dir = []
     for root_dir, dir_names, file_names in os.walk(dir_path):
-        for file_name in file_names:
-            path = os.path.join(root_dir, file_name)
-            os.remove(path)
         for dir_name in dir_names:
-            path = os.path.join(root_dir, dir_name)
-            all_dir.append(path)
-    print all_dir
-    for dir_name in all_dir:
-        os.rmdir(path)
+            print dir_name
+            if os.path.isdir(dir_name):
+                shutil.rmtree(dir_name)
 
-def take_fs_photo():
+def take_fs_photo(dir_path):
     files = []
-    os.chdir(srce_dir)
+    os.chdir(dir_path)
     for root_dir, dir_names, file_names in os.walk('.'):
         for file_name in (file_names + dir_names):
             try:
@@ -82,7 +79,7 @@ else:
 shutil.rmtree(dir_to_backup)
 shutil.copytree(os.path.join(ref_dir, '0'), dir_to_backup)
 
-fs_photo = take_fs_photo()
+fs_photo = take_fs_photo(srce_dir)
 # Test
 my_backup = BckTarGroup('Test', srce_dir, dest_dir, work_dir, password)
 my_backup.create()
@@ -109,7 +106,7 @@ print "Read an existing backup"
 # Preparation
 print '-'*5 + ' Test 2 ' + '-'*5
 del my_backup
-fs_photo = take_fs_photo()
+fs_photo = take_fs_photo(srce_dir)
 # Test
 logging.debug('backup_name = ' + backup_name)
 my_backup = BckTarGroup(backup_name, srce_dir, dest_dir, work_dir, password)
@@ -133,7 +130,7 @@ print "Update an existing backup with the last member not full"
 # Preparation
 print '-'*5 + ' Test 3 ' + '-'*5
 os.utime(os.path.join(srce_dir, 'dir4', 'fileA'), None)   
-fs_photo3 = take_fs_photo()
+fs_photo3 = take_fs_photo(srce_dir)
 # Test
 #print backup_name
 #my_backup = BckTarGroup(backup_name, srce_dir, dest_dir, work_dir, password)
@@ -190,13 +187,14 @@ print "Update an existing backup where all members of a tar has been updated"
 print '-'*5 + ' Test 5 ' + '-'*5
 os.utime(os.path.join(srce_dir, 'dir2', 'file23'), None)   
 os.utime(os.path.join(srce_dir, 'file2'), None)   
-fs_photo5 = take_fs_photo()
+fs_photo5 = take_fs_photo(srce_dir)
 # Test
 #print backup_name
 #my_backup = BckTarGroup(backup_name, srce_dir, dest_dir, work_dir, password)
 my_backup5 = my_backup4.update()
 bck_submembers5 = my_backup5.getsubmembers()
 my_backup5.print_members()
+backup5_name = my_backup5.name
 # Result
 result = True
 if bck_submembers5 != fs_photo5:
@@ -211,4 +209,36 @@ if result:
     print 'Test 5: OK\n\n'
 else:
     print 'Test 5: KO'
+    sys.exit(3)   
+
+time.sleep(1)
+# Test 6
+print "Restore lest backup"
+# Preparation
+print '-'*5 + ' Test 6 ' + '-'*5
+if os.path.exists(extract_dir):
+    rm_dir_content(extract_dir)
+else:
+    os.makedirs(extract_dir)
+fs_photo6 = take_fs_photo(srce_dir)
+# Test
+print backup5_name
+my_backup6 = BckTarGroup(backup5_name, srce_dir, dest_dir, work_dir, password)
+my_backup6.extract(extract_dir)
+# Result
+my_backup6.print_members()
+fs_extract = take_fs_photo(extract_dir)
+bck_submembers6 = my_backup6.getsubmembers()
+result = True
+dir_comp = filecmp.dircmp(srce_dir, extract_dir)
+dir_comp.report_full_closure()
+if dir_comp.left_only or dir_comp.right_only:
+    logging.debug('Restore backup does not reflect the file system')
+    result = False
+# Output
+print "Nb elements: " + str(len(bck_submembers6))
+if result:
+    print 'Test 6: OK\n\n'
+else:
+    print 'Test 6: KO'
     sys.exit(3)   

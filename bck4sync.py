@@ -428,10 +428,10 @@ class BckTarGroup:
 
     def extract(self, extract_dir):
         if not self.members:
-            self._set_members()
+            self._read_members()
 
-        for bcktar_file in self.bcktar_members:
-            bcktar_file.extract(extract_dir)
+        for member in self.members:
+            member.extract(extract_dir)
 
     def getmembers(self):
         if not self.members:
