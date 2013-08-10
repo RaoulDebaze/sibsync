@@ -15,7 +15,7 @@ logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
 logging.info('Start')
 
 logging.debug('Setting global variables')
-base_bck_dir = '/Users/simon/Partages/Sauvegardes'
+base_bck_dir = '/Users/Shared/Sauvegardes'
 ref_dir = os.getcwd()
 user = getpass.getuser()
 host = socket.gethostname()
