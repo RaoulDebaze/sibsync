@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 # TODO 001: Manage symlink
-# DONE 002: Add empty directory
+
 # TODO 003: Manage an directories exceptions list
 # TODO 004: Exclude too big files
 
@@ -200,7 +200,21 @@ class BckTarFile:
                         'mtime': int(member.mtime),
                         'size': member.size})
         return self.members
-            
+
+def get_bcktargroups(prefix, dest_dir):
+    suffix = 'bck4sync'
+    bcktargroups = []
+    for root_dir, dir_names, file_names in os.walk(dest_dir):
+        for file_name in file_names:
+            if re.search('^' + prefix + \
+                    '-[2-9]\d{3}[0-1]\d[0-3]\d[0-2]\d[0-5]\d[0-5]\d\.' + \
+                    suffix + '$', file_name):
+                bcktargroups.append(os.path.join(root_dir, file_name))
+    
+    bcktargroups.sort()
+    return bcktargroups
+
+
 class BckTarGroup:
     """All files for a complete backup"""
     

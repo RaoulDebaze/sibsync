@@ -8,7 +8,9 @@ import shutil
 import socket
 import sys
 import time
+import bck4sync
 from bck4sync import BckTarGroup
+from bck4sync import get_bcktargroups
 
 # Main
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
@@ -257,7 +259,7 @@ else:
 
 time.sleep(1)
 # Test 6
-print "Restore lest backup"
+print "Restore last backup"
 # Preparation
 print '-'*5 + ' Test 6 ' + '-'*5
 if os.path.exists(extract_dir):
@@ -286,3 +288,15 @@ if result:
 else:
     print 'Test 6: KO'
     sys.exit(3)   
+
+time.sleep(1)
+# Test 7
+print "List existing backup"
+# Preparation
+print '-'*5 + ' Test 7 ' + '-'*5
+# Test
+bck_list = get_bcktargroups('Test', dest_dir)
+# Output
+print bck_list
+last_bck = bck_list[-1]
+print last_bck
