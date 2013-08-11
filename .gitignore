@@ -3,3 +3,4 @@
 *.pyc
 srce_dir
 dest_dir
+install.sh

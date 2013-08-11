@@ -223,20 +223,17 @@ class BckTarGroup:
         test_name = re.sub('\.' + self.suffix, '', args[0])
         # Initialize from an exisiting ctrl file
         # Test if first argument looks like a backup name
-        print args[0]
-        print len(args[0])
-        print len(test_name)
         print test_name
         if re.search('-[2-9]\d{3}[0-1]\d[0-3]\d[0-2]\d[0-5]\d[0-5]\d$', \
                 test_name):
             logging.debug('Construct BckTarGroup by name')
-            self.name = test_name
+            self.name = os.path.basename(test_name)
             self.srce_dir = args[1]
             self.dest_dir = args[2]
             self.work_dir = args[3]
             self.password = args[4]
-            (self.prefix, self.datetime) = \
-                    string.split(self.name, '-')
+            self.datetime = self.name[-14:]
+            self.prefix = self.name[:-15]
         else:
             logging.debug('Construct BckTarGroup from a prefix')
             self.prefix = args[0]
@@ -247,7 +244,7 @@ class BckTarGroup:
             self.datetime = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
             self.name = self.prefix + '-' + self.datetime
             
-        self.max_members_size = (50*1024)
+        self.max_members_size = (100*1024*1024)
         self.key = SHA256.new(self.password).digest()
         self.bcktar_members = []
         self.members = []

@@ -24,16 +24,16 @@ logging.info('Start')
 if not os.path.exists(work_dir):
     os.makedirs(work_dir)
 
-for bckdir in bckdir_list:
-    bckdir_base = os.path.basename(os.path.normpath(bckdir))
-    bck_list = get_bcktargroups(bckdir_base, dest_dir)
-    if bck_list:
-        last_bck = bck_list[-1]
-        my_backup = BckTarGroup(last_bck, \
-                bckdir, dest_dir, work_dir, password)
-        my_backup.update()
-    else:
-        logging.debug('Backup ' + bckdir_base)
-        my_backup = BckTarGroup(bckdir_base, \
-                bckdir, dest_dir, work_dir, password)
-        my_backup.create()
+srce_dir = bckdir_list[0]
+extract_dir = os.path.join(srce_dir, 'tmp')
+if not os.path.exists(extract_dir):
+    os.makedirs(extract_dir)
+
+bck_name = os.path.basename(os.path.normpath(srce_dir))
+bck_list = get_bcktargroups(bck_name, dest_dir)
+if bck_list:
+    last_bck = bck_list[-1]
+    my_backup = BckTarGroup(last_bck, \
+                            srce_dir, dest_dir, work_dir, password)
+    my_backup.extract(extract_dir)
+
