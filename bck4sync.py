@@ -411,7 +411,8 @@ class BckTarGroup:
                 updated_bck._append_member(ori_member)
             elif new_submembers:
                 # Add a new tar only if there is something to add
-                updated_bck._append_member(self._get_new_member(ori_member.index))
+                updated_bck._append_member(
+                        updated_bck._get_new_member(ori_member.index))
                 new_member = updated_bck.members[-1]
                 new_member.open('w')
                 for submember in new_submembers:
