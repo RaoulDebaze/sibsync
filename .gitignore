@@ -1,3 +1,5 @@
 .DS_Store
 *.xcodeproj
 *.pyc
+srce_dir
+dest_dir

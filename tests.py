@@ -15,11 +15,9 @@ logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
 logging.info('Start Tests')
 
 logging.debug('Setting global variables')
-dir_to_backup = '/root/res/test'
-base_bck_dir = '/root/res/bck'
-#dir_to_backup = '/Users/simon/Partages/Test'
-#base_bck_dir = '/Users/simon/Partages/Sauvegardes'
 ref_dir = os.getcwd()
+dir_to_backup = os.path.join(ref_dir, 'srce_dir')
+base_bck_dir = os.path.join(ref_dir, 'dest_dir')
 user = getpass.getuser()
 host = socket.gethostname()
 srce_dir = dir_to_backup
@@ -35,9 +33,20 @@ def rm_dir_content(dir_path):
     all_dir = []
     for root_dir, dir_names, file_names in os.walk(dir_path):
         for dir_name in dir_names:
-            print dir_name
             if os.path.isdir(dir_name):
                 shutil.rmtree(dir_name)
+    for root_dir, dir_names, file_names in os.walk(dir_path):
+        for file_name in file_names:
+            os.remove(file_name)
+
+def copytree(src, dst, symlinks=False, ignore=None):
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, symlinks, ignore)
+        else:
+            shutil.copy2(s, d)
 
 def take_fs_photo(dir_path):
     files = []
@@ -59,6 +68,42 @@ def take_fs_photo(dir_path):
     # Sort list by files date
     return sorted(files, key=lambda mtime: mtime['mtime'])
 
+# Set time of ref dir
+os.utime(os.path.join(ref_dir, '0', 'file1'), \
+         (1376224250, 1376224250))
+os.utime(os.path.join(ref_dir, '0', 'file2'), \
+         (1376174351, 1376174351))
+os.utime(os.path.join(ref_dir, '0', 'file3'), \
+         (1376224452, 1376224452))
+os.utime(os.path.join(ref_dir, '0', 'file3'), \
+         (1376224553, 1376224553))
+os.utime(os.path.join(ref_dir, '0', 'dir1'), \
+         (1376224654, 1376224654))
+os.utime(os.path.join(ref_dir, '0', 'dir2'), \
+         (1376224755, 1376224755))
+os.utime(os.path.join(ref_dir, '0', 'dir3'), \
+         (1376224856, 1376224856))
+os.utime(os.path.join(ref_dir, '0', 'dir4'), \
+         (1376224950, 1376224950))
+os.utime(os.path.join(ref_dir, '0', 'dir2', 'dir21'), \
+         (1376225050, 1376225050))
+os.utime(os.path.join(ref_dir, '0', 'dir2', 'dir22'), \
+         (1376225150, 1376225150))
+os.utime(os.path.join(ref_dir, '0', 'dir2', 'file21'), \
+         (1376215250, 1376215250))
+os.utime(os.path.join(ref_dir, '0', 'dir2', 'file22'), \
+         (1376225350, 1376225350))
+os.utime(os.path.join(ref_dir, '0', 'dir2', 'file23'), \
+         (1376185450, 1376185450))
+os.utime(os.path.join(ref_dir, '0', 'dir4', 'dir41'), \
+         (1376225550, 1376225550))
+os.utime(os.path.join(ref_dir, '0', 'dir4', 'fileA'), \
+         (1376195650, 1376195650))
+os.utime(os.path.join(ref_dir, '0', 'dir4', 'fileB'), \
+         (1376165750, 1376165750))
+os.utime(os.path.join(ref_dir, '0', 'dir4', 'dir41', 'fileA1'), \
+         (1376225850, 1376225850))
+
 # Test 1
 print "Create a new backup"
 # Preparation 1
@@ -72,12 +117,11 @@ if os.path.exists(work_dir):
 else:
     os.makedirs(work_dir)
 # Reinitialize dir_to_backup
-#if os.path.exists(dir_to_backup):
-#    rm_dir_content(dir_to_backup)
-#else:
-#    os.makedirs(dir_to_backup)
-shutil.rmtree(dir_to_backup)
-shutil.copytree(os.path.join(ref_dir, '0'), dir_to_backup)
+if os.path.exists(dir_to_backup):
+    rm_dir_content(dir_to_backup)
+else:
+    os.makedirs(dir_to_backup)
+copytree(os.path.join(ref_dir, '0'), dir_to_backup)
 
 fs_photo = take_fs_photo(srce_dir)
 # Test
@@ -129,7 +173,7 @@ time.sleep(1)
 print "Update an existing backup with the last member not full"
 # Preparation
 print '-'*5 + ' Test 3 ' + '-'*5
-os.utime(os.path.join(srce_dir, 'dir4', 'fileA'), None)   
+os.utime(os.path.join(srce_dir, 'dir2', 'file21'), None)
 fs_photo3 = take_fs_photo(srce_dir)
 # Test
 #print backup_name
@@ -185,8 +229,8 @@ time.sleep(1)
 print "Update an existing backup where all members of a tar has been updated"
 # Preparation
 print '-'*5 + ' Test 5 ' + '-'*5
-os.utime(os.path.join(srce_dir, 'dir2', 'file23'), None)   
-os.utime(os.path.join(srce_dir, 'file2'), None)   
+os.utime(os.path.join(srce_dir, 'file4'), None)
+os.utime(os.path.join(srce_dir, 'dir4', 'fileA'), None)
 fs_photo5 = take_fs_photo(srce_dir)
 # Test
 #print backup_name

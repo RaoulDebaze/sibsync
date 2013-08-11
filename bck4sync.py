@@ -206,7 +206,7 @@ class BckTarGroup:
     
     def __init__(self, *args):
         self.suffix = 'bck4sync'
-        test_name = args[0].rstrip('.' + self.suffix)
+        test_name = re.sub('\.' + self.suffix, '', args[0])
         # Initialize from an exisiting ctrl file
         # Test if first argument looks like a backup name
         print args[0]
