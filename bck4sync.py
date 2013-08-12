@@ -313,6 +313,9 @@ class BckTarGroup:
             else:
                 # First new member, set the index to 1
                 index = 1
+        print self.prefix
+        print index
+        print self.datetime
 
         # Create an empty bcktar_member
         member = BckTarFile(\
