@@ -376,6 +376,7 @@ class BckTarGroup:
                 self.srce_dir, self.dest_dir, self.work_dir, \
                 self.password, \
                 datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
+        updated_bck.max_members_size = self.max_members_size
         updated_bck.open('w')
         
         if not self.members:
