@@ -128,6 +128,7 @@ copytree(os.path.join(ref_dir, '0'), dir_to_backup)
 fs_photo = take_fs_photo(srce_dir)
 # Test
 my_backup = BckTarGroup('Test', srce_dir, dest_dir, work_dir, password)
+my_backup.max_members_size = (50*1024)
 my_backup.create()
 # Result 1
 result = True
