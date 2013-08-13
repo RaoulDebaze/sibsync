@@ -214,7 +214,44 @@ def get_bcktargroups(prefix, dest_dir):
     bcktargroups.sort()
     return bcktargroups
 
+def del_oldest_bck(dest_dir, keep = 1):
+    suffix = 'bck4sync'
+    bcktargroup_fullnames = []
+    for root_dir, dir_names, file_names in os.walk(dest_dir):
+        for file_name in file_names:
+            if re.search(\
+                    '-[2-9]\d{3}[0-1]\d[0-3]\d[0-2]\d[0-5]\d[0-5]\d\.' + \
+                    suffix + '$', file_name):
+                bcktargroup_fullnames.append(\
+                        os.path.join(root_dir, file_name))
 
+    old_path_prefix = ''
+    bcktargroups = []
+    for fullname in bcktargroup_fullnames:
+        cur_path_prefix = fullname[:-(1 + 14 + 1 + len(suffix))]
+        if old_path_prefix != cur_path_prefix:
+            print cur_path_prefix
+            bcktargroups.sort()
+            bcktargroups.reverse()
+            # Add code to remove old
+            print bcktargroups
+            old_path_prefix = cur_path_prefix
+            bcktargroups = []
+        bcktargroup = BckTarGroup(fullname, \
+                '/tmp', os.path.dirname(fullname), '/tmp', 'null')
+        if bcktargroup.is_complete():
+                bcktargroups.append(bcktargroup)
+                print bcktargroup.name
+                    if len(bcktargroups) >= keep:
+                        break
+        # bcktargroup_with_prefix = []
+        # for fullname in bcktargroup_fullnames:
+            # if re.search('^' + prefix + \
+                    # '-[2-9]\d{3}[0-1]\d[0-3]\d[0-2]\d[0-5]\d[0-5]\d\.' + \
+                    # suffix + '$', os.path.basename(fullname)):
+                # bcktargroup_with_prefix.append(fullname)
+
+        
 class BckTarGroup:
     """All files for a complete backup"""
     

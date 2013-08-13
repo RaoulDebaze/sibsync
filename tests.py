@@ -11,6 +11,7 @@ import time
 import bck4sync
 from bck4sync import BckTarGroup
 from bck4sync import get_bcktargroups
+from bck4sync import del_oldest_bck
 
 # Main
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
@@ -295,9 +296,29 @@ time.sleep(1)
 print "List existing backup"
 # Preparation
 print '-'*5 + ' Test 7 ' + '-'*5
+result = True
 # Test
 bck_list = get_bcktargroups('Test', dest_dir)
 # Output
 print bck_list
 last_bck = bck_list[-1]
 print last_bck
+if result:
+    print 'Test 7: OK\n\n'
+else:
+    print 'Test 7: KO'
+    sys.exit(7)
+
+# Test 8
+print "Delete oldest backups"
+print '-'*5 + ' Test 8 ' + '-'*5
+# Preparation
+result = True
+# Test
+del_oldest_bck(base_bck_dir)
+# Output
+if result:
+    print 'Test 8: OK\n\n'
+else:
+    print 'Test 8: KO'
+    sys.exit(8)   
