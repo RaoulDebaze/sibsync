@@ -27,6 +27,7 @@ srce_dir = dir_to_backup
 dest_dir = os.path.join(base_bck_dir, host, user)
 work_dir = os.path.join(base_bck_dir, '.bck4sync')
 extract_dir = os.path.join(base_bck_dir, 'restore')
+bck_prefix = 'test'
 
 password = 'changeme'
 
@@ -128,7 +129,7 @@ copytree(os.path.join(ref_dir, '0'), dir_to_backup)
 
 fs_photo = take_fs_photo(srce_dir)
 # Test
-my_backup = BckTarGroup('Test', srce_dir, dest_dir, work_dir, password)
+my_backup = BckTarGroup(prefix, srce_dir, dest_dir, work_dir, password)
 my_backup.max_members_size = (50*1024)
 my_backup.create()
 # Result 1
@@ -298,7 +299,7 @@ print "List existing backup"
 print '-'*5 + ' Test 7 ' + '-'*5
 result = True
 # Test
-bck_list = get_bcktargroups('Test', dest_dir)
+bck_list = get_bcktargroups(prefix, dest_dir)
 # Output
 print bck_list
 last_bck = bck_list[-1]
